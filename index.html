@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Caption Generator</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 480px; margin: 40px auto; padding: 0 16px; background:#fafafa; }
+  h1 { font-size: 1.3rem; }
+  form { display: flex; flex-direction: column; gap: 12px; }
+  input, textarea, button { font-size: 1rem; padding: 10px; border-radius: 8px; border: 1px solid #ccc; }
+  button { background: #111; color: #fff; border: none; cursor: pointer; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  #result { margin-top: 20px; padding: 14px; background: #fff; border-radius: 8px; border: 1px solid #eee; white-space: pre-wrap; display: none; }
+  #status { margin-top: 10px; font-size: 0.9rem; color: #555; }
+</style>
+</head>
+<body>
+  <h1>📸 Caption Generator</h1>
+  <form id="form">
+    <input type="file" name="file" accept="image/*,video/*" required>
+    <textarea name="context" placeholder="Konteks tambahan (opsional)" rows="2"></textarea>
+    <button type="submit" id="submitBtn">Bikin Caption</button>
+  </form>
+  <div id="status"></div>
+  <div id="result"></div>
+
+  <script>
+    const form = document.getElementById("form");
+    const status = document.getElementById("status");
+    const result = document.getElementById("result");
+    const btn = document.getElementById("submitBtn");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      btn.disabled = true;
+      status.textContent = "Lagi proses... bisa beberapa detik, sabar.";
+      result.style.display = "none";
+
+      const formData = new FormData(form);
+      try {
+        const res = await fetch("/api/caption", { method: "POST", body: formData });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Gagal bikin caption.");
+        result.textContent = data.caption;
+        result.style.display = "block";
+        status.textContent = "";
+      } catch (err) {
+        status.textContent = "Error: " + err.message;
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
